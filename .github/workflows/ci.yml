@@ -23,7 +23,8 @@ jobs:
           mix compile
       - if: matrix.elixir == '1.17.3'
         run: "mix deps.unlock --check-unused"
-      - run: "mix credo suggest --strict"
+      - if: matrix.elixir == '1.17.3'
+        run: "mix credo suggest --strict"
       - if: matrix.elixir == '1.17.3'
         run: "mix format --check-formatted"
       - id: "plt-cache"
