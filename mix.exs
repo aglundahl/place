@@ -11,7 +11,8 @@ defmodule Place.MixProject do
     [
       app: :place,
       deps: deps(),
-      description: "A library and dataset containing names, ISO 3166 codes, currencies and much more about countries, states and cities around the world.",
+      description:
+        "A library and dataset containing names, ISO 3166 codes, currencies and much more about countries, states and cities around the world.",
       dialyzer: [
         plt_add_apps: [:ex_unit, :mix],
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
