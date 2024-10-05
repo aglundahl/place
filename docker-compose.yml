@@ -1,0 +1,6 @@
+services:
+  elixir:
+    build:
+      context: "."
+    volumes:
+      - ".:/elixir"
