@@ -4,13 +4,13 @@ defmodule PlaceTest do
   import Place
 
   setup_all do
-    [csc_db: load_csc_db!()]
+    [db: load_db!()]
   end
 
   # This also implicitly tests `mix place.import`.
-  describe "load_csc_db!" do
-    test "countries", %{csc_db: csc_db} do
-      assert Enum.count(csc_db.countries) == 250
+  describe "load_db!" do
+    test "countries", %{db: db} do
+      assert Enum.count(db.countries) == 250
 
       countries_without_csc_region_id =
         MapSet.new([
@@ -30,7 +30,7 @@ defmodule PlaceTest do
           "Cote D'Ivoire (Ivory Coast)"
         ])
 
-      Enum.each(csc_db.countries, fn {country_code, country} ->
+      Enum.each(db.countries, fn {country_code, country} ->
         assert country_code == country.iso2
 
         assert is_binary(country.capital)
@@ -84,15 +84,15 @@ defmodule PlaceTest do
       end)
     end
 
-    test "states", %{csc_db: csc_db} do
+    test "states", %{db: db} do
       assert(
-        Enum.flat_map(csc_db.states, fn {_, states} ->
+        Enum.flat_map(db.states, fn {_, states} ->
           states
         end)
         |> Enum.count() == 5023
       )
 
-      Enum.each(csc_db.states, fn {country_code, states} ->
+      Enum.each(db.states, fn {country_code, states} ->
         Enum.each(states, fn {state_code, state} ->
           assert state.country_iso2 == country_code
           assert is_integer(state.csc_id)
@@ -105,9 +105,9 @@ defmodule PlaceTest do
       end)
     end
 
-    test "cities", %{csc_db: csc_db} do
+    test "cities", %{db: db} do
       assert(
-        Enum.flat_map(csc_db.cities, fn {_, states} ->
+        Enum.flat_map(db.cities, fn {_, states} ->
           Enum.flat_map(states, fn {_, cities} ->
             cities
           end)
@@ -115,7 +115,7 @@ defmodule PlaceTest do
         |> Enum.count() == 150_652
       )
 
-      Enum.each(csc_db.cities, fn {country_code, states} ->
+      Enum.each(db.cities, fn {country_code, states} ->
         Enum.each(states, fn {state_code, cities} ->
           Enum.each(cities, fn city ->
             assert city.country_iso2 == country_code
@@ -130,17 +130,17 @@ defmodule PlaceTest do
     end
   end
 
-  test "get_countries", %{csc_db: csc_db} do
-    Enum.each([get_countries(), get_countries(csc_db)], fn countries ->
+  test "get_countries", %{db: db} do
+    Enum.each([get_countries(), get_countries(db)], fn countries ->
       assert Enum.count(countries) == 250
       assert Enum.find(countries, &(&1.iso2 == "US")).name == "United States"
     end)
   end
 
   describe "get_states" do
-    test "existent country", %{csc_db: csc_db} do
+    test "existent country", %{db: db} do
       Enum.each(
-        [get_states(country_code: "US"), get_states(csc_db, country_code: "US")],
+        [get_states(country_code: "US"), get_states(db, country_code: "US")],
         fn states ->
           assert Enum.count(states) == 66
           assert Enum.find(states, &(&1.state_code == "CA")).name == "California"
@@ -148,9 +148,9 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
-        [get_states(country_code: "foo"), get_states(csc_db, country_code: "foo")],
+        [get_states(country_code: "foo"), get_states(db, country_code: "foo")],
         fn states ->
           assert is_nil(states)
         end
@@ -159,9 +159,9 @@ defmodule PlaceTest do
   end
 
   describe "get_cities by country" do
-    test "existent country", %{csc_db: csc_db} do
+    test "existent country", %{db: db} do
       Enum.each(
-        [get_cities(country_code: "US"), get_cities(csc_db, country_code: "US")],
+        [get_cities(country_code: "US"), get_cities(db, country_code: "US")],
         fn cities ->
           assert Enum.count(cities) == 19_820
           assert Enum.find(cities, &(&1.name == "Los Angeles")).latitude == "34.05223000"
@@ -169,9 +169,9 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
-        [get_cities(country_code: "foo"), get_cities(csc_db, country_code: "foo")],
+        [get_cities(country_code: "foo"), get_cities(db, country_code: "foo")],
         fn cities ->
           assert is_nil(cities)
         end
@@ -180,11 +180,11 @@ defmodule PlaceTest do
   end
 
   describe "get_cities by country and state" do
-    test "existent country and state", %{csc_db: csc_db} do
+    test "existent country and state", %{db: db} do
       Enum.each(
         [
           get_cities(country_code: "US", state_code: "CA"),
-          get_cities(csc_db, country_code: "US", state_code: "CA")
+          get_cities(db, country_code: "US", state_code: "CA")
         ],
         fn cities ->
           assert Enum.count(cities) == 1124
@@ -193,11 +193,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
         [
           get_cities(country_code: "foo", state_code: "CA"),
-          get_cities(csc_db, country_code: "foo", state_code: "CA")
+          get_cities(db, country_code: "foo", state_code: "CA")
         ],
         fn cities ->
           assert is_nil(cities)
@@ -205,11 +205,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent state", %{csc_db: csc_db} do
+    test "nonexistent state", %{db: db} do
       Enum.each(
         [
           get_cities(country_code: "US", state_code: "foo"),
-          get_cities(csc_db, country_code: "US", state_code: "foo")
+          get_cities(db, country_code: "US", state_code: "foo")
         ],
         fn cities ->
           assert is_nil(cities)
@@ -219,18 +219,18 @@ defmodule PlaceTest do
   end
 
   describe "get_country" do
-    test "existent country", %{csc_db: csc_db} do
+    test "existent country", %{db: db} do
       Enum.each(
-        [get_country(country_code: "US"), get_country(csc_db, country_code: "US")],
+        [get_country(country_code: "US"), get_country(db, country_code: "US")],
         fn country ->
           assert country.name == "United States"
         end
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
-        [get_country(country_code: "foo"), get_country(csc_db, country_code: "foo")],
+        [get_country(country_code: "foo"), get_country(db, country_code: "foo")],
         fn country ->
           assert is_nil(country)
         end
@@ -239,11 +239,11 @@ defmodule PlaceTest do
   end
 
   describe "get_state" do
-    test "existent country and state", %{csc_db: csc_db} do
+    test "existent country and state", %{db: db} do
       Enum.each(
         [
           get_state(country_code: "US", state_code: "CA"),
-          get_state(csc_db, country_code: "US", state_code: "CA")
+          get_state(db, country_code: "US", state_code: "CA")
         ],
         fn state ->
           assert state.name == "California"
@@ -251,11 +251,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
         [
           get_state(country_code: "foo", state_code: "CA"),
-          get_state(csc_db, country_code: "foo", state_code: "CA")
+          get_state(db, country_code: "foo", state_code: "CA")
         ],
         fn state ->
           assert is_nil(state)
@@ -263,11 +263,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent state", %{csc_db: csc_db} do
+    test "nonexistent state", %{db: db} do
       Enum.each(
         [
           get_state(country_code: "US", state_code: "foo"),
-          get_state(csc_db, country_code: "US", state_code: "foo")
+          get_state(db, country_code: "US", state_code: "foo")
         ],
         fn state ->
           assert is_nil(state)
@@ -277,11 +277,11 @@ defmodule PlaceTest do
   end
 
   describe "get_city" do
-    test "existent country, state and city", %{csc_db: csc_db} do
+    test "existent country, state and city", %{db: db} do
       Enum.each(
         [
           get_city(country_code: "US", state_code: "CA", city_name: "Los Angeles"),
-          get_city(csc_db, country_code: "US", state_code: "CA", city_name: "Los Angeles")
+          get_city(db, country_code: "US", state_code: "CA", city_name: "Los Angeles")
         ],
         fn city ->
           assert city.latitude == "34.05223000"
@@ -289,11 +289,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
         [
           get_city(country_code: "foo", state_code: "CA", city_name: "Los Angeles"),
-          get_city(csc_db, country_code: "foo", state_code: "CA", city_name: "Los Angeles")
+          get_city(db, country_code: "foo", state_code: "CA", city_name: "Los Angeles")
         ],
         fn city ->
           assert is_nil(city)
@@ -301,11 +301,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent state", %{csc_db: csc_db} do
+    test "nonexistent state", %{db: db} do
       Enum.each(
         [
           get_city(country_code: "US", state_code: "foo", city_name: "Los Angeles"),
-          get_city(csc_db, country_code: "US", state_code: "foo", city_name: "Los Angeles")
+          get_city(db, country_code: "US", state_code: "foo", city_name: "Los Angeles")
         ],
         fn city ->
           assert is_nil(city)
@@ -313,11 +313,11 @@ defmodule PlaceTest do
       )
     end
 
-    test "nonexistent city", %{csc_db: csc_db} do
+    test "nonexistent city", %{db: db} do
       Enum.each(
         [
           get_city(country_code: "US", state_code: "CA", city_name: "foo"),
-          get_city(csc_db, country_code: "US", state_code: "CA", city_name: "foo")
+          get_city(db, country_code: "US", state_code: "CA", city_name: "foo")
         ],
         fn city ->
           assert is_nil(city)
@@ -327,27 +327,27 @@ defmodule PlaceTest do
   end
 
   describe "has_states" do
-    test "existent country with states", %{csc_db: csc_db} do
+    test "existent country with states", %{db: db} do
       Enum.each(
-        [has_states?(country_code: "US"), has_states?(csc_db, country_code: "US")],
+        [has_states?(country_code: "US"), has_states?(db, country_code: "US")],
         fn value ->
           assert {:ok, true} = value
         end
       )
     end
 
-    test "existent country without states", %{csc_db: csc_db} do
+    test "existent country without states", %{db: db} do
       Enum.each(
-        [has_states?(country_code: "AX"), has_states?(csc_db, country_code: "AX")],
+        [has_states?(country_code: "AX"), has_states?(db, country_code: "AX")],
         fn value ->
           assert {:ok, false} = value
         end
       )
     end
 
-    test "nonexistent country", %{csc_db: csc_db} do
+    test "nonexistent country", %{db: db} do
       Enum.each(
-        [has_states?(country_code: "foo"), has_states?(csc_db, country_code: "foo")],
+        [has_states?(country_code: "foo"), has_states?(db, country_code: "foo")],
         fn value ->
           assert {:error, false} = value
         end

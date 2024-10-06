@@ -14,7 +14,7 @@ defmodule Place do
   def start_link(_) do
     GenServer.start_link(
       __MODULE__,
-      load_csc_db!(),
+      load_db!(),
       name: __MODULE__
     )
   end
@@ -24,12 +24,12 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> Enum.count(csc_db.countries)
+      iex> db = Place.load_db!()
+      iex> Enum.count(db.countries)
       250
   """
-  @spec load_csc_db!() :: DB.t()
-  def load_csc_db! do
+  @spec load_db!() :: DB.t()
+  def load_db! do
     File.read!("#{Application.app_dir(:place)}/priv/countries-states-cities-database/db.gz")
     |> :zlib.gunzip()
     |> :erlang.binary_to_term()
@@ -54,8 +54,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> countries = Place.get_countries(csc_db)
+      iex> db = Place.load_db!()
+      iex> countries = Place.get_countries(db)
       iex> Enum.find(countries, &(&1.iso2 == "US")).name
       "United States"
   """
@@ -88,8 +88,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> states = Place.get_states(csc_db, country_code: "US")
+      iex> db = Place.load_db!()
+      iex> states = Place.get_states(db, country_code: "US")
       iex> Enum.find(states, &(&1.state_code == "CA")).name
       "California"
   """
@@ -139,13 +139,13 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> cities = Place.get_cities(csc_db, country_code: "US")
+      iex> db = Place.load_db!()
+      iex> cities = Place.get_cities(db, country_code: "US")
       iex> Enum.find(cities, &(&1.name == "Los Angeles")).latitude
       "34.05223000"
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> cities = Place.get_cities(csc_db, country_code: "US", state_code: "CA")
+      iex> db = Place.load_db!()
+      iex> cities = Place.get_cities(db, country_code: "US", state_code: "CA")
       iex> Enum.find(cities, &(&1.name == "Los Angeles")).latitude
       "34.05223000"
   """
@@ -189,8 +189,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> Place.get_country(csc_db, country_code: "US").name
+      iex> db = Place.load_db!()
+      iex> Place.get_country(db, country_code: "US").name
       "United States"
   """
   @spec get_country(DB.t(), country_code: binary()) :: Country.t() | nil
@@ -222,8 +222,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> Place.get_state(csc_db, country_code: "US", state_code: "CA").name
+      iex> db = Place.load_db!()
+      iex> Place.get_state(db, country_code: "US", state_code: "CA").name
       "California"
   """
   @spec get_state(DB.t(), country_code: binary(), state_code: binary()) :: State.t() | nil
@@ -257,8 +257,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> Place.get_city(csc_db, country_code: "US", state_code: "CA", city_name: "Los Angeles").latitude
+      iex> db = Place.load_db!()
+      iex> Place.get_city(db, country_code: "US", state_code: "CA", city_name: "Los Angeles").latitude
       "34.05223000"
   """
   @spec get_city(DB.t(), country_code: binary(), state_code: binary(), city_name: binary()) ::
@@ -300,8 +300,8 @@ defmodule Place do
 
   ## Examples
 
-      iex> csc_db = Place.load_csc_db!()
-      iex> Place.has_states?(csc_db, country_code: "US")
+      iex> db = Place.load_db!()
+      iex> Place.has_states?(db, country_code: "US")
       {:ok, true}
   """
   @spec has_states?(DB.t(), country_code: binary()) :: {:ok, boolean()} | {:error, false}

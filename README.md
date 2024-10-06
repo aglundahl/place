@@ -126,13 +126,13 @@ overhead of the interprocess communication is negligible.
 
 However, if you don't want to add `Place` to your application's supervisor or if
 want to directly access the `%Place.DB{}` struct, you can use
-`Place.load_csc_db!()`. Most of the functions in Place's API ships with two
-arities, one that assumes the GenServer is running and one that explicitly takes
-a `%Place.DB{}`. For example:
+`Place.load_db!()`. Most of the functions in Place's API ships with two arities,
+one that assumes the GenServer is running and one that explicitly takes a
+`%Place.DB{}`. For example:
 
 ```elixir
 iex> Place.get_countries() # First option
-iex> Place.load_csc_db!() |> Place.get_countries() # Second option
+iex> Place.load_db!() |> Place.get_countries() # Second option
 ```
 
 ## License
